@@ -6,7 +6,7 @@ from .views.base_views import (CompanyView,
                                UserSignUPView, )
 from .views.stats_view import (StudioStatView,
                                CompanyStatView,
-                               EachDayStatView,
+                               SingleStudioEachDayStatView,
                                EachStudioAmount
                                )
 
@@ -17,9 +17,9 @@ router.register('records', RecordStudioView, basename='records')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('sign_up/', UserSignUPView.as_view()),
+    path('sign-up/', UserSignUPView.as_view()),
     path('company/stat/', CompanyStatView.as_view()),
     path('studios/<int:pk>/stat/', StudioStatView.as_view()),
-    path('studios/<int:pk>/daystat/', EachDayStatView.as_view()),
+    path('studios/<int:pk>/daystat/', SingleStudioEachDayStatView.as_view()),
     path('studio/amount/', EachStudioAmount.as_view())
 ]

@@ -2,9 +2,25 @@ from django.db import models
 from django.contrib.auth import get_user_model
 
 
-class ActiveManager(models.Manager):
+class ActiveCompanyManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(active_now=True)
+        return super().get_queryset().filter(active_now=True).select_related('owner__companies')
+
+
+class StudioManager(models.Manager):
+    def filter(self, *args, **kwargs):
+        return super().filter(*args, **kwargs).select_related('company__owner')
+
+    def all(self, *args, **kwargs):
+        return super().all(*args, **kwargs).select_related('company__owner')
+
+
+class RecordsManager(models.Manager):
+    def filter(self, *args, **kwargs):
+        return super().filter(*args, **kwargs).select_related('studio__company__owner')
+
+    def all(self, *args, **kwargs):
+        return super().all(*args, **kwargs).select_related('studio__company__owner')
 
 
 class Company(models.Model):
@@ -23,7 +39,7 @@ class Company(models.Model):
     company_logo = models.ImageField(upload_to='companies', blank=True)
 
     objects = models.Manager()
-    active = ActiveManager()
+    active = ActiveCompanyManager()
 
     class Meta:
         verbose_name = 'Компания'
@@ -47,6 +63,8 @@ class Studio(models.Model):
     address = models.TextField(max_length=200,
                                verbose_name='Адрес')
 
+    objects = StudioManager()
+
     class Meta:
         ordering = ('company', 'city', 'name')
         verbose_name = 'Студия'
@@ -66,6 +84,8 @@ class Record(models.Model):
     duration = models.DurationField(verbose_name='Длительность')
     cost = models.PositiveSmallIntegerField(verbose_name='Стоимость часа записи')
     session_cost = models.PositiveIntegerField(verbose_name='Стоимость сеанса')
+
+    objects = RecordsManager()
 
     class Meta:
         verbose_name = 'Запись'

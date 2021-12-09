@@ -4,20 +4,20 @@ from django.contrib.auth import get_user_model
 
 
 class UserSerializer(serializers.ModelSerializer):
-    password1 = serializers.CharField(write_only=True)
-    password2 = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
+    password_confirmation = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        if data['password1'] != data['password2']:
-            raise serializers.ValidationError('Passwords must match.')
+        if data['password'] != data['password_confirmation']:
+            raise serializers.ValidationError('Пароли не совпадают')
         return data
 
     def create(self, validated_data):
         data = {
             key: value for key, value in validated_data.items()
-            if key not in ('password1', 'password2')
+            if key not in ('password', 'password_confirmation')
         }
-        data['password'] = validated_data['password1']
+        data['password'] = validated_data['password']
         return self.Meta.model.objects.create_user(**data)
 
     class Meta:
@@ -66,7 +66,7 @@ class StudioSerializerForRecord(StudioSerializer):
         fields = ('id', 'name', 'company')
         extra_kwargs = {'name': {
             'validators': [],
-        }
+            }
         }
 
 
