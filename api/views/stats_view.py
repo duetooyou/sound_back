@@ -1,9 +1,8 @@
-from django.db.models import Sum, Avg, Max, F, DateField
+from django.db.models import Sum, Avg, Max, F, DateField, DurationField
 from django.db.models.functions import TruncDay, Cast
-from rest_framework import (views,
-                            response,
-                            )
+from rest_framework import response
 from .mixins import OwnerMixin
+from ..models import Record
 
 
 class CompanyStatView(OwnerMixin):
@@ -12,8 +11,10 @@ class CompanyStatView(OwnerMixin):
         company_stat = self.get_queryset().aggregate(total_amount=Sum('session_cost'),
                                                      max_cost=Max('cost'),
                                                      avg_cost=Avg('cost'),
-                                                     duration=Max('duration'),
+                                                     max_duration=Max('duration'),
+                                                     avg_duration=Avg('duration')
                                                      )
+
         return response.Response(company_stat)
 
     def get_view_name(self):
@@ -26,8 +27,9 @@ class StudioStatView(OwnerMixin):
         studio_stat = super().get_queryset().filter(studio_id=pk) \
             .aggregate(average_cost=Avg('cost'),
                        max_cost=Max('cost'),
-                       max_duration=Max('duration'),
+                       max_duration=Max('duration', output_field=DurationField()),
                        total_cost=Sum('session_cost'))
+        print(studio_stat)
         return response.Response(studio_stat)
 
     def get_view_name(self):
@@ -37,12 +39,13 @@ class StudioStatView(OwnerMixin):
 class EachStudioAmount(OwnerMixin):
 
     def get(self, request):
-        each_studio_amount = self.get_queryset().\
+        each_studio_amount = Record.objects.\
             values(label=F('studio__name')).annotate(value=Sum('session_cost'))
+        print(self.request.user)
         return response.Response(each_studio_amount)
 
     def get_view_name(self):
-        return f'Суммарный доход студий за все время'
+        return f'Суммарный доход каждой студии за все время'
 
 
 class SingleStudioEachDayStatView(OwnerMixin):

@@ -26,8 +26,7 @@ class RecordsManager(models.Manager):
 class Company(models.Model):
     name = models.CharField(max_length=50,
                             verbose_name='Название компании',
-                            unique=True
-                            )
+                            unique=True)
     owner = models.OneToOneField(get_user_model(),
                                  related_name='companies',
                                  on_delete=models.CASCADE,
@@ -36,7 +35,9 @@ class Company(models.Model):
                                    verbose_name='Время создания')
     active_now = models.BooleanField(default=True,
                                      verbose_name='Активна на сайте')
-    company_logo = models.ImageField(upload_to='companies', blank=True)
+    company_logo = models.ImageField(upload_to='companies',
+                                     verbose_name="Логотип",
+                                     blank=True)
 
     objects = models.Manager()
     active = ActiveCompanyManager()
