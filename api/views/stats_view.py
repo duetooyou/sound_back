@@ -12,9 +12,9 @@ class CompanyStatView(OwnerMixin):
                                                      max_cost=Max('cost'),
                                                      avg_cost=Avg('cost'),
                                                      max_duration=Max('duration'),
-                                                     avg_duration=Avg('duration')
-                                                     )
-
+                                                     avg_duration=Avg('duration'))
+        company_stat['max_duration'] = str(company_stat['max_duration'])
+        company_stat['avg_duration'] = str(company_stat['avg_duration'])
         return response.Response(company_stat)
 
     def get_view_name(self):
@@ -29,7 +29,8 @@ class StudioStatView(OwnerMixin):
                        max_cost=Max('cost'),
                        max_duration=Max('duration', output_field=DurationField()),
                        total_cost=Sum('session_cost'))
-        print(studio_stat)
+        studio_stat['max_duration'] = str(studio_stat['max_duration'])
+        studio_stat['avg_duration'] = str(studio_stat['avg_duration'])
         return response.Response(studio_stat)
 
     def get_view_name(self):
