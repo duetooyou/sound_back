@@ -35,6 +35,12 @@ class CompanyView(viewsets.ModelViewSet):
                                    'Спасибо за понимание'}
             return response.Response(content, status=status.HTTP_400_BAD_REQUEST)
 
+    @decorators.action(detail=False, url_path='current')
+    def get_current_user_company(self, request):
+        current_company = self.get_queryset().filter(owner=request.user)
+        serializer = CompanySerializer(current_company, many=True)
+        return response.Response(serializer.data)
+
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 

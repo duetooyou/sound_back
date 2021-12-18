@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 from .views.base_views import (CompanyView,
                                StudioView,
                                RecordStudioView,
@@ -8,9 +9,10 @@ from .views.base_views import (CompanyView,
 from .views.stats_view import (StudioStatView,
                                CompanyStatView,
                                SingleStudioEachDayStatView,
-                               EachStudioAmount
+                               EachStudioAmountView,
+                               EachMonthStatView,
+                               EachYearStatView
                                )
-
 
 router = DefaultRouter()
 router.register('companies', CompanyView, basename='companies')
@@ -25,5 +27,7 @@ urlpatterns = [
     path('company/stat/', CompanyStatView.as_view()),
     path('studios/<int:pk>/stat/', StudioStatView.as_view()),
     path('studios/<int:pk>/daystat/', SingleStudioEachDayStatView.as_view()),
-    path('studio/amount/', EachStudioAmount.as_view())
+    path('studios/<int:pk>/monthstat/', EachMonthStatView.as_view()),
+    path('studios/<int:pk>/yearstat/', EachYearStatView.as_view()),
+    path('studio/amount/', EachStudioAmountView.as_view()),
 ]

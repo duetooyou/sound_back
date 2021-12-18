@@ -1,5 +1,8 @@
-from django.db.models import Sum, Avg, Max, F, DateField, DurationField
-from django.db.models.functions import TruncDay, Cast
+import calendar
+from django.db.models import Sum, Avg, Max, F, DateField
+from django.db.models.functions import (TruncDay,
+                                        ExtractMonth,
+                                        ExtractYear)
 from rest_framework import response
 from .mixins import OwnerMixin
 from ..models import Record
@@ -25,10 +28,11 @@ class StudioStatView(OwnerMixin):
 
     def get(self, request, pk):
         studio_stat = super().get_queryset().filter(studio_id=pk) \
-            .aggregate(average_cost=Avg('cost'),
+            .aggregate(total_amount=Sum('session_cost'),
                        max_cost=Max('cost'),
-                       max_duration=Max('duration', output_field=DurationField()),
-                       total_cost=Sum('session_cost'))
+                       avg_cost=Avg('cost'),
+                       max_duration=Max('duration'),
+                       avg_duration=Avg('duration'))
         studio_stat['max_duration'] = str(studio_stat['max_duration'])
         studio_stat['avg_duration'] = str(studio_stat['avg_duration'])
         return response.Response(studio_stat)
@@ -37,10 +41,10 @@ class StudioStatView(OwnerMixin):
         return f'Статистика по студии'
 
 
-class EachStudioAmount(OwnerMixin):
+class EachStudioAmountView(OwnerMixin):
 
     def get(self, request):
-        each_studio_amount = Record.objects.\
+        each_studio_amount = Record.objects. \
             values(label=F('studio__name')).annotate(value=Sum('session_cost'))
         print(self.request.user)
         return response.Response(each_studio_amount)
@@ -52,9 +56,9 @@ class EachStudioAmount(OwnerMixin):
 class SingleStudioEachDayStatView(OwnerMixin):
 
     def get(self, request, pk):
-        each_day_amount = super().get_queryset().filter(studio_id=pk).\
-            values(label=Cast(TruncDay('start_recording'), output_field=DateField())).\
-            annotate(value=Sum('session_cost'))
+        each_day_amount = super().get_queryset().filter(studio_id=pk). \
+            annotate(label=TruncDay('start_recording', output_field=DateField())). \
+            values('label').annotate(value=Sum('session_cost'))
         return response.Response(each_day_amount)
 
     def get_view_name(self):
@@ -63,4 +67,20 @@ class SingleStudioEachDayStatView(OwnerMixin):
 
 class EachMonthStatView(OwnerMixin):
 
-    def get(self, request): pass
+    def get(self, request, pk):
+        each_month_amount = self.get_queryset().filter(studio_id=pk). \
+            annotate(label=ExtractMonth('end_recording')). \
+            values('label').annotate(value=Sum('session_cost'))
+        print(each_month_amount)
+        for i in each_month_amount:
+            print(i)
+        return response.Response(each_month_amount)
+
+
+class EachYearStatView(OwnerMixin):
+
+    def get(self, request, pk):
+        each_year_amount = self.get_queryset().filter(studio_id=pk). \
+            annotate(label=ExtractYear('end_recording')). \
+            values('label').annotate(value=Sum('session_cost'))
+        return response.Response(each_year_amount)
