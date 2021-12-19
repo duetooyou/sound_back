@@ -1,11 +1,13 @@
-import calendar
+from datetime import datetime
 from django.db.models import Sum, Avg, Max, F, DateField
 from django.db.models.functions import (TruncDay,
+                                        TruncMonth,
                                         ExtractMonth,
                                         ExtractYear)
 from rest_framework import response
 from .mixins import OwnerMixin
 from ..models import Record
+from ..serializers import RecordMonthSerializer, RecordYearSerializer
 
 
 class CompanyStatView(OwnerMixin):
@@ -44,9 +46,8 @@ class StudioStatView(OwnerMixin):
 class EachStudioAmountView(OwnerMixin):
 
     def get(self, request):
-        each_studio_amount = Record.objects. \
+        each_studio_amount = self.get_queryset(). \
             values(label=F('studio__name')).annotate(value=Sum('session_cost'))
-        print(self.request.user)
         return response.Response(each_studio_amount)
 
     def get_view_name(self):
@@ -68,19 +69,26 @@ class SingleStudioEachDayStatView(OwnerMixin):
 class EachMonthStatView(OwnerMixin):
 
     def get(self, request, pk):
-        each_month_amount = self.get_queryset().filter(studio_id=pk). \
-            annotate(label=ExtractMonth('end_recording')). \
+        current = datetime.now().year
+        each_month_amount = self.get_queryset().filter(studio_id=pk,
+                                                       start_recording__year=current). \
+            annotate(label=ExtractMonth('start_recording')). \
             values('label').annotate(value=Sum('session_cost'))
-        print(each_month_amount)
-        for i in each_month_amount:
-            print(i)
-        return response.Response(each_month_amount)
+        serializer = RecordMonthSerializer(each_month_amount, many=True)
+        return response.Response(serializer.data)
+
+    def get_view_name(self):
+        return f'Суммарный доход студии ежемесячно за текущий год'
 
 
 class EachYearStatView(OwnerMixin):
 
     def get(self, request, pk):
         each_year_amount = self.get_queryset().filter(studio_id=pk). \
-            annotate(label=ExtractYear('end_recording')). \
+            annotate(label=ExtractYear('start_recording')). \
             values('label').annotate(value=Sum('session_cost'))
-        return response.Response(each_year_amount)
+        serializer = RecordYearSerializer(each_year_amount, many=True)
+        return response.Response(serializer.data)
+
+    def get_view_name(self):
+        return f'Суммарный доход студии ежемесячно'

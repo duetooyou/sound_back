@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Company, Studio, Record
 from django.contrib.auth import get_user_model
+from .custom import MonthField, YearField
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -72,8 +73,18 @@ class StudioSerializerForRecord(StudioSerializer):
 
 class RecordSerializer(serializers.ModelSerializer):
 
-    studio = StudioSerializerForRecord()
-
     class Meta:
         model = Record
         fields = '__all__'
+
+
+class RecordMonthSerializer(RecordSerializer):
+    label = MonthField()
+    value = serializers.CharField()
+
+    class Meta(RecordSerializer.Meta):
+        fields = ['label', 'value']
+
+
+class RecordYearSerializer(RecordMonthSerializer):
+    label = YearField()
