@@ -1,12 +1,10 @@
 from datetime import datetime
 from django.db.models import Sum, Avg, Max, F, DateField
 from django.db.models.functions import (TruncDay,
-                                        TruncMonth,
                                         ExtractMonth,
                                         ExtractYear)
 from rest_framework import response
 from .mixins import OwnerMixin
-from ..models import Record
 from ..serializers import RecordMonthSerializer, RecordYearSerializer
 
 
@@ -16,10 +14,11 @@ class CompanyStatView(OwnerMixin):
         company_stat = self.get_queryset().aggregate(total_amount=Sum('session_cost'),
                                                      max_cost=Max('cost'),
                                                      avg_cost=Avg('cost'),
+                                                     avg_session_cost=Avg('session_cost'),
                                                      max_duration=Max('duration'),
                                                      avg_duration=Avg('duration'))
-        company_stat['max_duration'] = str(company_stat['max_duration'])
-        company_stat['avg_duration'] = str(company_stat['avg_duration'])
+        company_stat['max_duration'] = str(company_stat['max_duration']).split('.')[0]
+        company_stat['avg_duration'] = str(company_stat['avg_duration']).split('.')[0]
         return response.Response(company_stat)
 
     def get_view_name(self):
@@ -33,10 +32,11 @@ class StudioStatView(OwnerMixin):
             .aggregate(total_amount=Sum('session_cost'),
                        max_cost=Max('cost'),
                        avg_cost=Avg('cost'),
+                       avg_session_cost = Avg('session_cost'),
                        max_duration=Max('duration'),
                        avg_duration=Avg('duration'))
-        studio_stat['max_duration'] = str(studio_stat['max_duration'])
-        studio_stat['avg_duration'] = str(studio_stat['avg_duration'])
+        studio_stat['max_duration'] = str(studio_stat['max_duration']).split('.')[0]
+        studio_stat['avg_duration'] = str(studio_stat['avg_duration']).split('.')[0]
         return response.Response(studio_stat)
 
     def get_view_name(self):
@@ -58,8 +58,8 @@ class SingleStudioEachDayStatView(OwnerMixin):
 
     def get(self, request, pk):
         each_day_amount = super().get_queryset().filter(studio_id=pk). \
-            annotate(label=TruncDay('start_recording', output_field=DateField())). \
-            values('label').annotate(value=Sum('session_cost'))
+            values(label=TruncDay('start_recording', output_field=DateField())).\
+            annotate(value=Sum('session_cost'))
         return response.Response(each_day_amount)
 
     def get_view_name(self):
@@ -91,4 +91,4 @@ class EachYearStatView(OwnerMixin):
         return response.Response(serializer.data)
 
     def get_view_name(self):
-        return f'Суммарный доход студии ежемесячно'
+        return f'Суммарный доход студии ежегодно'

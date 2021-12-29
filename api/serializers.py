@@ -83,7 +83,7 @@ class RecordMonthSerializer(RecordSerializer):
     value = serializers.CharField()
 
     class Meta(RecordSerializer.Meta):
-        fields = ['label', 'value']
+        fields = ('label', 'value')
 
 
 class RecordYearSerializer(RecordMonthSerializer):

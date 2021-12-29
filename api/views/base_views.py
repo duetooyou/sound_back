@@ -5,7 +5,8 @@ from rest_framework import (viewsets,
                             permissions,
                             status,
                             response,
-                            decorators, )
+                            decorators,
+                            pagination)
 from ..serializers import (CompanySerializer,
                            StudioSerializer,
                            RecordSerializer,
@@ -71,13 +72,12 @@ class RecordStudioView(viewsets.ModelViewSet):
 
     @decorators.action(detail=True, url_path='single-studio')
     def get_studio_records(self, request, pk):
-        single_studio_records = Record.objects.filter(studio_id=pk)
+        single_studio_records = Record.objects.filter(studio_id=pk).order_by('-start_recording')
         serializer = RecordSerializer(single_studio_records, many=True)
         return response.Response(serializer.data)
 
     @decorators.action(detail=False, url_path='single-company')
     def get_company_records(self, request):
-        print(self.get_queryset())
         single_company_records = Record.objects.filter(studio__company__owner=self.request.user)
         serializer = RecordSerializer(single_company_records, many=True)
         return response.Response(serializer.data)

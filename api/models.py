@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 
 class ActiveCompanyManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(active_now=True).select_related('owner__companies')
+        return super().get_queryset().filter(active_now=True) 
 
 
 class StudioManager(models.Manager):
